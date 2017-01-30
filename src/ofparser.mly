@@ -9,10 +9,11 @@
 
 %token<string> IDENTIFIER
 %token<float> NUMERIC_LITERAL
+%token<string> STRING_LITERAL
 %token COMMA SEMI
 %token FN VAR RETURN
 %token IF ELSE FOR WHILE
-%token PLUS MINUS MULT DIV UMINUS
+%token PLUS MINUS MULT DIV
 %token LE LT GE GT NE EQ OR AND
 %token ASSIGN
 %token TRUE FALSE

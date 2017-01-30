@@ -25,8 +25,11 @@ module Ast = struct
      | String_literal_expression of string
      | Table_constructor_expression of (expression * expression) list
      | Table_value_expression of identifier * expression
+     | Unary_operation_expression of unary_operator * expression
      | Binary_operation_expression of expression * binary_operator * exptression
      | Function_call_expression of identifier * (expression list)
+   and unary_operator =
+     | Uplus | Uminus
    and binary_operator =
      | Plus | Minus | Mult | Div
      | Lt | Le | Gt | Ge | Ne | Eq
