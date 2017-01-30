@@ -53,7 +53,7 @@ rule read = parse
   | float
     { NUMERIC_LITERAL (float_of_string (lexeme lexbuf)) }
   | '"'
-    { STRING_LITERAL (read_string (Buffer.create 17) lexbuf) }
+    { read_string (Buffer.create 17) lexbuf }
   | ','
     { COMMA }
   | ';'
@@ -68,7 +68,7 @@ rule read = parse
     { DIV }
   | '<'
     { LT }
-  | "<='
+  | "<="
     { LE }
   | '>'
     { GT }
@@ -103,7 +103,7 @@ rule read = parse
     }
   
 and read_string buf = parse
-  | '"'       { STRING (Buffer.contents buf) }
+  | '"'       { STRING_LITERAL (Buffer.contents buf) }
   | '\\' '/'  { Buffer.add_char buf '/'; read_string buf lexbuf }
   | '\\' '\\' { Buffer.add_char buf '\\'; read_string buf lexbuf }
   | '\\' 'b'  { Buffer.add_char buf '\b'; read_string buf lexbuf }
@@ -115,6 +115,6 @@ and read_string buf = parse
     { Buffer.add_string buf (Lexing.lexeme lexbuf);
       read_string buf lexbuf
     }
-  | eof { raise (SyntaxError ("String is not terminated")) }
-  | _ { raise (SyntaxError ("Illegal string character: " ^ Lexing.lexeme lexbuf)) }
+  | eof { raise (Syntax_error ("String is not terminated")) }
+  | _ { raise (Syntax_error ("Illegal string character: " ^ Lexing.lexeme lexbuf)) }
   

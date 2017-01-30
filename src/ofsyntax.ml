@@ -26,7 +26,7 @@ module Ast = struct
      | Table_constructor_expression of (expression * expression) list
      | Table_value_expression of identifier * expression
      | Unary_operation_expression of unary_operator * expression
-     | Binary_operation_expression of expression * binary_operator * exptression
+     | Binary_operation_expression of expression * binary_operator * expression
      | Function_call_expression of identifier * (expression list)
    and unary_operator =
      | Uplus | Uminus
@@ -36,7 +36,7 @@ module Ast = struct
      | And | Or
 
   let to_string program =
-    let write_line buf depth str =
+    let rec write_line buf depth str =
       for i = 0 to depth do
         Buffer.add_string buf "  "
       done;
@@ -44,10 +44,10 @@ module Ast = struct
       Buffer.add_char buf '\n'
                       
     and translate_external_definition buf depth = function
-      | Function_external_definition x -> 
-         translate_function_external_definition buf depth x
-      | Variable_external_definition x ->
-         translate_variable_external_definition buf depth x
+      | Function_external_definition (funcname, params, stmts) ->
+         translate_function_external_definition buf depth (funcname, params, stmts)
+      | Variable_external_definition (varname, exp_option) ->
+         translate_variable_external_definition buf depth (varname, exp_option) 
                                                 
     and translate_function_external_definition buf depth (funcname, params, stmts) =
       write_line buf depth "function external definition:";
@@ -73,22 +73,22 @@ module Ast = struct
       | _ -> ()
                
     and translate_statement buf depth = function
-      | If_statement x ->
-         translate_if_statement buf depth x
-      | For_statement x ->
-         translate_for_statement buf depth x
-      | While_statement x ->
-         translate_while_statement buf depth x
-      | Variable_declaration_statement x ->
-         translate_variable_declaration_statement buf depth x
-      | Variable_assign_statement x ->
-         translate_assign_statement buf depth x
-      | Table_value_assign_statement x ->
-         translate_table_value_assign_statement buf depth x
-      | Function_call_statement x ->
-         translate_function_call_statement buf depth x
-      | Return_statement x ->
-         translate_return_statement x
+      | If_statement (cond, tstmt, fstmt_option) ->
+         translate_if_statement buf depth (cond, tstmt, fstmt_option)
+      | For_statement (init_stmt, cond, prop_stmt, stmts) ->
+         translate_for_statement buf depth (init_stmt, cond, prop_stmt, stmts)
+      | While_statement (cond, stmts) ->
+         translate_while_statement buf depth (cond, stmts)
+      | Variable_declaration_statement (varname, exp_option) ->
+         translate_variable_declaration_statement buf depth (varname, exp_option)
+      | Variable_assign_statement (varname, exp) ->
+         translate_assign_statement buf depth (varname, exp)
+      | Table_value_assign_statement (varname, key, value) ->
+         translate_table_value_assign_statement buf depth (varname, key, value)
+      | Function_call_statement (funcname, args) ->
+         translate_function_call_statement buf depth (funcname, args)
+      | Return_statement exp_option ->
+         translate_return_statement buf depth exp_option
                                     
     and translate_if_statement buf depth (cond, tstmt, fstmt_option) = 
       write_line buf depth "if statement:";
@@ -150,9 +150,9 @@ module Ast = struct
       write_line buf (depth + 1) "variable name:";
       write_line buf (depth + 2) varname;
       write_line buf (depth + 1) "key expression:";
-      translate_expression (depth + 2) key;
+      translate_expression buf (depth + 2) key;
       write_line buf (depth + 1) "value expression:";
-      translate_expression (depth + 2) value
+      translate_expression buf (depth + 2) value
                            
     and translate_function_call_statement buf depth (funcname, args) =
       write_line buf depth "function call statement:";
@@ -172,24 +172,24 @@ module Ast = struct
       | _ -> ()
                
     and translate_expression buf depth = function
-      | Variable_expression x ->
-         translate_variable_expression buf depth x
-      | Boolean_literal_expression x ->
-         translate_boolean_literal_expression buf depth x
-      | Numeric_literal_expression x ->
-         translate_numeric_literal_expression buf depth x
-      | String_literal_expression x ->
-         translate_string_literal_expression buf depth x
-      | Table_constructor_expression x ->
-         translate_table_constructor_expression buf depth x
-      | Table_value_expression x ->
-         translate_table_value_expression buf depth x
-      | Unary_operation_expression x ->
-         translate_unary_operator buf depth x
-      | Binary_operation_expression x ->
-         translate_binary_operator buf depth x
-      | Function_call_expression x ->
-         translate_function_call_expression buf depth x
+      | Variable_expression varname ->
+         translate_variable_expression buf depth varname
+      | Boolean_literal_expression b ->
+         translate_boolean_literal_expression buf depth b
+      | Numeric_literal_expression n ->
+         translate_numeric_literal_expression buf depth n
+      | String_literal_expression s ->
+         translate_string_literal_expression buf depth s
+      | Table_constructor_expression fields ->
+         translate_table_constructor_expression buf depth fields
+      | Table_value_expression (varname, key) ->
+         translate_table_value_expression buf depth (varname, key)
+      | Unary_operation_expression (uop, exp) ->
+         translate_unary_operation_expression buf depth (uop, exp)
+      | Binary_operation_expression (lhs, op, rhs) ->
+         translate_binary_operation_expression buf depth (lhs, op, rhs)
+      | Function_call_expression (funcname, args) ->
+         translate_function_call_expression buf depth (funcname, args)
                                              
     and translate_variable_expression buf depth varname =
       write_line buf depth "variable expression:";
@@ -256,7 +256,7 @@ module Ast = struct
     and translate_unary_operator buf depth = function
       | Uplus ->
          write_line buf depth "+"
-      | Uminus -> 
+      | Uminus ->
          write_line buf depth "-"
 
     and translate_binary_operator buf depth = function
@@ -288,7 +288,7 @@ module Ast = struct
     
     let buf = Buffer.create 100 in
     List.iter (fun external_definition ->
-        translate_external_definition buf program
+        translate_external_definition buf 0 external_definition
       ) program;
     Buffer.contents buf
 end
