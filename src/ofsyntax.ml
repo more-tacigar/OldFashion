@@ -251,7 +251,39 @@ module Ast = struct
       write_line buf (depth + 1) "arguments";
       List.iter (fun arg ->
           translate_expression buf (depth + 2) arg
-        ) args      
+        ) args
+
+    and translate_unary_operator buf depth = function
+      | Uplus ->
+         write_line buf depth "+"
+      | Uminus -> 
+         write_line buf depth "-"
+
+    and translate_binary_operator buf depth = function
+      | Plus ->
+         write_line buf depth "+"
+      | Minus ->
+         write_line buf depth "-"
+      | Mult ->
+         write_line buf depth "*"
+      | Div ->
+         write_line buf depth "/"
+      | Lt ->
+         write_line buf depth "<"
+      | Le ->
+         write_line buf depth "<="
+      | Gt ->
+         write_line buf depth ">"
+      | Ge ->
+         write_line buf depth ">="
+      | Ne ->
+         write_line buf depth "!="
+      | Eq ->
+         write_line buf depth "=="
+      | And ->
+         write_line buf depth "and"
+      | Or ->
+         write_line buf depth "or"
     in
     
     let buf = Buffer.create 100 in
