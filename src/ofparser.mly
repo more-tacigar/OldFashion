@@ -12,7 +12,7 @@
 %token COMMA SEMI
 %token FN VAR RETURN
 %token IF ELSE FOR WHILE
-%token PLUS MINUS MULT DIV
+%token PLUS MINUS MULT DIV UMINUS
 %token LE LT GE GT NE EQ OR AND
 %token ASSIGN
 %token TRUE FALSE
@@ -24,6 +24,7 @@
 %left LT LE GT GE EQ NE
 %left PLUS MINUS
 %left MULT DIV
+%nonassoc UMINUS UPLUS
 
 %start program
 %type<Ast.program> program
@@ -128,6 +129,14 @@ expression
   | varname = IDENTIFIER; LBRACKET; exp = expression; RBRACKET
     {
       Ast.Table_value_expression (varname, exp)
+    }
+  | PLUS; exp = expression %pred UPLUS
+    {
+      Ast.Unary_operation_expression (Ast.Uplus, exp)
+    }
+  | MINUS; exp = expression %prec UMINUS
+    {
+      Ast.Unary_operation_expression (Ast.Uminus, exp)
     }
   | lhs = expression; PLUS; rhs = expression
     {
