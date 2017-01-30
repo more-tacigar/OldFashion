@@ -16,6 +16,7 @@
 %token LE LT GE GT NE EQ OR AND
 %token ASSIGN
 %token TRUE FALSE
+%token LPAREN RPAREN LBRACE RBRACE LBRACKET RBRACKET
 %token EOF
 
 %left OR
@@ -82,6 +83,10 @@ statement
     {
       Ast.Variable_assign_statement (varname, exp)
     }
+  | varname = IDENTIFIER; LBRACKET; key = expression; RBRACKET; ASSIGN; value = expression
+    {
+      Ast.Table_value_assign_statement (varname, key, value)
+    }
   | funcname = IDENTIFIER; LPAREN; args = separated_list(COMMA, expression); RPAREN
     {
       Ast.Function_call_statement (funcname, args)
@@ -115,6 +120,14 @@ expression
   | FALSE
     {
       Ast.Boolean_literal_expression (false)
+    }
+  | LBRACKET; fields = separated_list(COMMA, field); RBRACKET
+    {
+      Ast.Table_constructor_expression (fields)
+    }
+  | varname = IDENTIFIER; LBRACKET; exp = expression; RBRACKET
+    {
+      Ast.Table_value_expression (varname, exp)
     }
   | lhs = expression; PLUS; rhs = expression
     {
@@ -167,5 +180,11 @@ expression
   | funcname = IDENTIFIER; LPAREN; args = separated_list(COMMA, expression); RPAREN
     {
       Ast.Function_call_expression (funcname, args)
+    }
+  ;
+field
+  : key = expression; ASSIGN; value = expression
+    {
+      (key, value)
     }
   ;
