@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: a52914f2b9f70b812a085a2f71f0b6bf)
+# DO NOT EDIT (digest: 69e3d5a534a73b2a58ef2979ea188ca9)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -17,8 +17,8 @@ true: annot, bin_annot
 # Library ofparser
 "src/ofparser.cmxs": use_ofparser
 # Executable oldfashion
-<src/ofmain.{native,byte}>: pkg_menhirLib
-<src/ofmain.{native,byte}>: use_ofparser
+<src/oldfashion.{native,byte}>: pkg_menhirLib
+<src/oldfashion.{native,byte}>: use_ofparser
 <src/*.ml{,i,y}>: pkg_menhirLib
 <src/*.ml{,i,y}>: use_ofparser
 # OASIS_STOP

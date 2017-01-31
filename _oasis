@@ -17,6 +17,6 @@ Executable oldfashion
   Path:           src
   BuildTools:     ocamlbuild
   BuildDepends:   ofparser
-  MainIs:         ofmain.ml
+  MainIs:         oldfashion.ml
   CompiledObject: best
   
