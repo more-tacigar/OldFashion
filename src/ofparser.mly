@@ -2,7 +2,7 @@
  * Copyright (c) 2017 tacigar. All rights reserved.
  * https://github.com/tacigar/oldfashion
  * ============================================================ */
- 
+
 %{
   open Ofsyntax
 %}
@@ -59,7 +59,7 @@ block
 statement
   : IF; LPAREN; cond = expression; RPAREN; tstmts = block
     {
-      Ofsyntax.Ast.If_statement (cond, tstmts, None) 
+      Ofsyntax.Ast.If_statement (cond, tstmts, None)
     }
   | IF; LPAREN; cond = expression; RPAREN; tstmts = block; ELSE; fstmts = block
     {
@@ -190,6 +190,10 @@ expression
   | funcname = IDENTIFIER; LPAREN; args = separated_list(COMMA, expression); RPAREN
     {
       Ofsyntax.Ast.Function_call_expression (funcname, args)
+    }
+  | LPAREN; exp = expression; RPAREN
+    {
+      Ofsyntax.Ast.Paren_expression (exp)
     }
   ;
 field

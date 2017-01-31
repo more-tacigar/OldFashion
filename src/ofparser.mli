@@ -1,4 +1,5 @@
-exception Error
+
+(* The type of tokens. *)
 
 type token = 
   | WHILE
@@ -36,5 +37,10 @@ type token =
   | ASSIGN
   | AND
 
+(* This exception is raised by the monolithic API functions. *)
+
+exception Error
+
+(* The monolithic API. *)
 
 val program: (Lexing.lexbuf -> token) -> Lexing.lexbuf -> (Ofsyntax.Ast.program)
