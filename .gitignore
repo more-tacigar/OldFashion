@@ -19,6 +19,7 @@ _build/
 setup.data
 setup.log
 
-parser.ml
-parser.mli
-lexer.ml
+# menhir and ocamllex generated files
+src/ofparser.ml
+src/ofparser.mli
+src/oflexer.ml
