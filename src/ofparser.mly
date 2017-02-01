@@ -28,7 +28,7 @@
 %nonassoc UMINUS UPLUS
 
 %start program
-%type<Ofsyntax.Ast.program> program
+%type<Ofast.program> program
 
 %%
 
@@ -39,15 +39,15 @@ program
 external_definition
   : FN; funcname = IDENTIFIER; LPAREN; params = separated_list(COMMA, IDENTIFIER); RPAREN; stmts = block
     {
-      Ofsyntax.Ast.Function_external_definition (funcname, params, stmts)
+      Ofast.Function_external_definition (funcname, params, stmts)
     }
   | VAR; varname = IDENTIFIER; ASSIGN; exp = expression
     {
-      Ofsyntax.Ast.Variable_external_definition (varname, Some exp)
+      Ofast.Variable_external_definition (varname, Some exp)
     }
   | VAR; varname = IDENTIFIER
     {
-      Ofsyntax.Ast.Variable_external_definition (varname, None)
+      Ofast.Variable_external_definition (varname, None)
     }
   ;
 block
@@ -59,141 +59,141 @@ block
 statement
   : IF; LPAREN; cond = expression; RPAREN; tstmts = block
     {
-      Ofsyntax.Ast.If_statement (cond, tstmts, None)
+      Ofast.If_statement (cond, tstmts, None)
     }
   | IF; LPAREN; cond = expression; RPAREN; tstmts = block; ELSE; fstmts = block
     {
-      Ofsyntax.Ast.If_statement (cond, tstmts, Some fstmts)
+      Ofast.If_statement (cond, tstmts, Some fstmts)
     }
   | FOR; LPAREN; init_stmt = statement; SEMI; cond = expression; SEMI; prop_stmt = statement; RPAREN; stmts = block
     {
-      Ofsyntax.Ast.For_statement (init_stmt, cond, prop_stmt, stmts)
+      Ofast.For_statement (init_stmt, cond, prop_stmt, stmts)
     }
   | WHILE; LPAREN; cond = expression; RPAREN; stmts = block
     {
-      Ofsyntax.Ast.While_statement (cond, stmts)
+      Ofast.While_statement (cond, stmts)
     }
   | VAR; varname = IDENTIFIER; ASSIGN; exp = expression
     {
-      Ofsyntax.Ast.Variable_declaration_statement (varname, Some exp)
+      Ofast.Variable_declaration_statement (varname, Some exp)
     }
   | VAR; varname = IDENTIFIER
     {
-      Ofsyntax.Ast.Variable_declaration_statement (varname, None)
+      Ofast.Variable_declaration_statement (varname, None)
     }
   | varname = IDENTIFIER; ASSIGN; exp = expression
     {
-      Ofsyntax.Ast.Variable_assign_statement (varname, exp)
+      Ofast.Variable_assign_statement (varname, exp)
     }
   | varname = IDENTIFIER; LBRACKET; key = expression; RBRACKET; ASSIGN; value = expression
     {
-      Ofsyntax.Ast.Table_value_assign_statement (varname, key, value)
+      Ofast.Table_value_assign_statement (varname, key, value)
     }
   | funcname = IDENTIFIER; LPAREN; args = separated_list(COMMA, expression); RPAREN
     {
-      Ofsyntax.Ast.Function_call_statement (funcname, args)
+      Ofast.Function_call_statement (funcname, args)
     }
   | RETURN
     {
-      Ofsyntax.Ast.Return_statement None
+      Ofast.Return_statement None
     }
   | RETURN; exp = expression
     {
-      Ofsyntax.Ast.Return_statement (Some exp)
+      Ofast.Return_statement (Some exp)
     }
   ;
 expression
   : varname = IDENTIFIER
     {
-      Ofsyntax.Ast.Variable_expression (varname)
+      Ofast.Variable_expression (varname)
     }
   | num = NUMERIC_LITERAL
     {
-      Ofsyntax.Ast.Numeric_literal_expression (num)
+      Ofast.Numeric_literal_expression (num)
     }
   | str = STRING_LITERAL
     {
-      Ofsyntax.Ast.String_literal_expression (str)
+      Ofast.String_literal_expression (str)
     }
   | TRUE
     {
-      Ofsyntax.Ast.Boolean_literal_expression (true)
+      Ofast.Boolean_literal_expression (true)
     }
   | FALSE
     {
-      Ofsyntax.Ast.Boolean_literal_expression (false)
+      Ofast.Boolean_literal_expression (false)
     }
   | LBRACKET; fields = separated_list(COMMA, field); RBRACKET
     {
-      Ofsyntax.Ast.Table_constructor_expression (fields)
+      Ofast.Table_constructor_expression (fields)
     }
   | varname = IDENTIFIER; LBRACKET; exp = expression; RBRACKET
     {
-      Ofsyntax.Ast.Table_value_expression (varname, exp)
+      Ofast.Table_value_expression (varname, exp)
     }
   | PLUS; exp = expression %prec UPLUS
     {
-      Ofsyntax.Ast.Unary_operation_expression (Ofsyntax.Ast.Uplus, exp)
+      Ofast.Unary_operation_expression (Ofast.Uplus, exp)
     }
   | MINUS; exp = expression %prec UMINUS
     {
-      Ofsyntax.Ast.Unary_operation_expression (Ofsyntax.Ast.Uminus, exp)
+      Ofast.Unary_operation_expression (Ofast.Uminus, exp)
     }
   | lhs = expression; PLUS; rhs = expression
     {
-      Ofsyntax.Ast.Binary_operation_expression (lhs, Ofsyntax.Ast.Plus, rhs)
+      Ofast.Binary_operation_expression (lhs, Ofast.Plus, rhs)
     }
   | lhs = expression; MINUS; rhs = expression
     {
-      Ofsyntax.Ast.Binary_operation_expression (lhs, Ofsyntax.Ast.Minus, rhs)
+      Ofast.Binary_operation_expression (lhs, Ofast.Minus, rhs)
     }
   | lhs = expression; MULT; rhs = expression
     {
-      Ofsyntax.Ast.Binary_operation_expression (lhs, Ofsyntax.Ast.Mult, rhs)
+      Ofast.Binary_operation_expression (lhs, Ofast.Mult, rhs)
     }
   | lhs = expression; DIV; rhs = expression
     {
-      Ofsyntax.Ast.Binary_operation_expression (lhs, Ofsyntax.Ast.Div, rhs)
+      Ofast.Binary_operation_expression (lhs, Ofast.Div, rhs)
     }
   | lhs = expression; LT; rhs = expression
     {
-      Ofsyntax.Ast.Binary_operation_expression (lhs, Ofsyntax.Ast.Lt, rhs)
+      Ofast.Binary_operation_expression (lhs, Ofast.Lt, rhs)
     }
   | lhs = expression; LE; rhs = expression
     {
-      Ofsyntax.Ast.Binary_operation_expression (lhs, Ofsyntax.Ast.Le, rhs)
+      Ofast.Binary_operation_expression (lhs, Ofast.Le, rhs)
     }
   | lhs = expression; GT; rhs = expression
     {
-      Ofsyntax.Ast.Binary_operation_expression (lhs, Ofsyntax.Ast.Gt, rhs)
+      Ofast.Binary_operation_expression (lhs, Ofast.Gt, rhs)
     }
   | lhs = expression; GE; rhs = expression
     {
-      Ofsyntax.Ast.Binary_operation_expression (lhs, Ofsyntax.Ast.Ge, rhs)
+      Ofast.Binary_operation_expression (lhs, Ofast.Ge, rhs)
     }
   | lhs = expression; NE; rhs = expression
     {
-      Ofsyntax.Ast.Binary_operation_expression (lhs, Ofsyntax.Ast.Ne, rhs)
+      Ofast.Binary_operation_expression (lhs, Ofast.Ne, rhs)
     }
   | lhs = expression; EQ; rhs = expression
     {
-      Ofsyntax.Ast.Binary_operation_expression (lhs, Ofsyntax.Ast.Eq, rhs)
+      Ofast.Binary_operation_expression (lhs, Ofast.Eq, rhs)
     }
   | lhs = expression; AND; rhs = expression
     {
-      Ofsyntax.Ast.Binary_operation_expression (lhs, Ofsyntax.Ast.And, rhs)
+      Ofast.Binary_operation_expression (lhs, Ofast.And, rhs)
     }
   | lhs = expression; OR; rhs = expression
     {
-      Ofsyntax.Ast.Binary_operation_expression (lhs, Ofsyntax.Ast.Or, rhs)
+      Ofast.Binary_operation_expression (lhs, Ofast.Or, rhs)
     }
   | funcname = IDENTIFIER; LPAREN; args = separated_list(COMMA, expression); RPAREN
     {
-      Ofsyntax.Ast.Function_call_expression (funcname, args)
+      Ofast.Function_call_expression (funcname, args)
     }
   | LPAREN; exp = expression; RPAREN
     {
-      Ofsyntax.Ast.Paren_expression (exp)
+      Ofast.Paren_expression (exp)
     }
   ;
 field

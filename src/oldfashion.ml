@@ -8,7 +8,7 @@ let usage_msg = "USAGE : oldfashion [options] filename"
 let dump_ast filename =
   let lexbuf = Lexing.from_channel (open_in filename) in
   let ast = Ofparser.program Oflexer.read lexbuf in
-  let ast_str = Ofsyntax.Ast.to_string ast in
+  let ast_str = Ofast.to_string ast in
   print_string ast_str
                   
 let main () =

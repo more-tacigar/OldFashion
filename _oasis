@@ -6,7 +6,7 @@ Authors:     tacigar
 License:     GPL-3
 
 Library ofparser
-  Modules:         Ofsyntax
+  Modules:         Ofast
   InternalModules: Ofparser
   Path:            src
   BuildTools:      menhir, ocamlbuild
