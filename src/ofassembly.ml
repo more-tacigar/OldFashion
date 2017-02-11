@@ -75,6 +75,15 @@ class translator = object(self)
     Buffer.add_string buffer_ funcname;
     Buffer.add_string buffer_ ": args=";
     Buffer.add_string buffer_ (string_of_int (List.length params));
+
+    (* Register parameter list *)
+    List.iter (fun param ->
+        match cur_scope_ with
+        | Scope (_, symbols) ->
+           symbols := Variable_symbol (param, cur_frame_index_) :: !symbols;
+           cur_frame_index_ <- cur_frame_index_ + 1
+      ) params;
+    
     (* Before writing about local variables, check statement and write tmp buf. *)
     let tmpbuf = Buffer.create 1000 in
     List.iter (fun stmt ->
