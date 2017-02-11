@@ -164,18 +164,37 @@ class translator = object(self)
       | _ -> raise Invalid_syntax
     end;
     let start_label = self#gen_label in
+    let start_label_n = cur_label_ in
     let end_label = self#gen_label in
+    let end_label_n = cur_label_ in
     Buffer.add_string buffer start_label;
     Buffer.add_char buffer '\n';
     self#translate_expression buffer true cond;
-    self#write_statement buffer ["TEST "; (string_of_int cur_label_)];
+    self#write_statement buffer ["TEST "; (string_of_int end_label_n)];
     List.iter (fun stmt ->
         self#translate_statement buffer stmt
       ) stmts;
-    self#write_statement buffer [end_label];
+    self#translate_statement buffer prop_stmt;
+    self#write_statement buffer ["JUMP "; (string_of_int start_label_n)];
+    Buffer.add_string buffer end_label;
+    Buffer.add_char buffer '\n'
       
   method translate_while_statement buffer cond stmts =
-    ()
+    let start_label = self#gen_label in
+    let start_label_n = cur_label_ in
+    let end_label = self#gen_label in
+    let end_label_n = cur_label_ in
+    self#translate_expression buffer true cond;
+    Buffer.add_string buffer start_label;
+    Buffer.add_char buffer '\n';
+    self#write_statement buffer ["TEST "; (string_of_int end_label_n)];
+    List.iter (fun stmt ->
+        self#translate_statement buffer stmt
+      ) stmts;
+    self#write_statement buffer ["JUMP "; (string_of_int start_label_n)];
+    Buffer.add_string buffer end_label;
+    Buffer.add_char buffer '\n'
+
 
   method translate_variable_declaration_statement buffer varname exp_option =
     begin

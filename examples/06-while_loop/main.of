@@ -1,0 +1,6 @@
+fn main() {
+   var x = 0
+   while (x <= 5) {
+      var y = 1
+   }
+}

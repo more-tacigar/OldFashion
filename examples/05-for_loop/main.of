@@ -1,0 +1,6 @@
+fn main() {
+   var n = 0
+   for (n = 0; n < 5; n = n + 1) {
+       var x = 1
+   }
+}
