@@ -5,18 +5,53 @@
 
 exception Invalid_syntax
 
+type symbol =
+  | Variable_symbol of string * int
+  | Function_symbol of string * int
+ and scope =
+  | Scope of scope option * (symbol list) ref
+            
 class translator = object(self)
-  val mutable cur_label_ = 0
-  val mutable cur_global_index_ = 0
   val mutable buffer_ = Buffer.create 1000
-
+  val mutable cur_label_ = 0
+  val mutable cur_scope_ = Scope (None, ref [])
+  val mutable cur_global_index_ = 0
+  val mutable cur_frame_index_ = 0
+                         
   method cur_label =
     ".label " ^ (string_of_int cur_label_)
 
   method gen_label =
     cur_label_ <- cur_label_ + 1;
     self#cur_label
-                                      
+
+  method lookup_symbol name =
+    let rec lookup = function
+      | Scope (parent, symbols) ->
+         try
+           let symbol =
+             List.find (fun x ->
+                 match x with
+                 | Variable_symbol (s, n) ->
+                    s = name
+                 | _ -> false
+               ) !symbols
+           in
+           let number =
+             match symbol with
+             | Variable_symbol (_, n) -> n
+             | _ -> assert false
+           in               
+           match parent with
+           | Some _ -> number, false (* it is not global symbol *)
+           | None   -> number, true  (* it is global symbol *)
+         with Not_found as e->
+           match parent with
+           | Some p -> lookup p
+           | None -> raise e
+    in
+    lookup cur_scope_
+
   method translate program =
     List.iter (fun external_definition ->
         self#translate_external_definition external_definition
@@ -30,20 +65,26 @@ class translator = object(self)
        self#translate_variable_external_definition varname exp_option
 
   method translate_function_external_definition funcname params body =
+    (* for variable declarations *)
+    cur_frame_index_ <- 0;
+    let origin = cur_scope_ in
+    let new_scope = Scope (Some cur_scope_, ref []) in
+    cur_scope_ <- new_scope;
+    
     Buffer.add_string buffer_ ".def ";
     Buffer.add_string buffer_ funcname;
     Buffer.add_string buffer_ ": args=";
     Buffer.add_string buffer_ (string_of_int (List.length params));
     (* Before writing about local variables, check statement and write tmp buf. *)
     let tmpbuf = Buffer.create 1000 in
-    let cur_frame_index = ref 0 in
     List.iter (fun stmt ->
-        self#translate_statement tmpbuf cur_frame_index stmt
+        self#translate_statement tmpbuf stmt
       ) body;
     Buffer.add_string buffer_ ", locals=";
-    Buffer.add_string buffer_ (string_of_int (!cur_frame_index - 1));
+    Buffer.add_string buffer_ (string_of_int cur_frame_index_);
     Buffer.add_char buffer_ '\n';
-    Buffer.add_buffer buffer_ tmpbuf
+    Buffer.add_buffer buffer_ tmpbuf;
+    cur_scope_ <- origin
 
   method translate_variable_external_definition varname exp_option =
     begin    
@@ -54,21 +95,26 @@ class translator = object(self)
     end;
     Buffer.add_string buffer_ "FGSTORE ";
     Buffer.add_string buffer_ (string_of_int cur_global_index_);
-    Buffer.add_char buffer_ '\n'
+    Buffer.add_char buffer_ '\n';
+    (* Update global scope and current global index. *)
+    begin
+      match cur_scope_ with
+        Scope (_, symbols) ->
+        symbols := Variable_symbol (varname, cur_global_index_) :: !symbols;
+    end;
+    cur_global_index_ <- cur_global_index_ + 1
 
-  method translate_statement buffer cur_frame_index = function
+  method translate_statement buffer = function
     | Ofast.If_statement (cond, tstmts, fstmts_option) ->
        self#translate_if_statement
-         buffer cur_frame_index cond tstmts fstmts_option
+         buffer cond tstmts fstmts_option
     | Ofast.For_statement (init_stmt, cond, prop_stmt, stmts) ->
        self#translate_for_statement
-         buffer cur_frame_index init_stmt cond prop_stmt stmts
+         buffer init_stmt cond prop_stmt stmts
     | Ofast.While_statement (cond, stmts) ->
-       self#translate_while_statement
-         buffer cur_frame_index cond stmts
+       self#translate_while_statement buffer cond stmts
     | Ofast.Variable_declaration_statement (varname, exp_option) ->
-       self#translate_variable_declaration_statement
-         buffer cur_frame_index varname exp_option
+       self#translate_variable_declaration_statement buffer varname exp_option
     | Ofast.Variable_assign_statement (varname, exp) ->
        self#translate_variable_assign_statement buffer varname exp
     | Ofast.Table_value_assign_statement (varname, key, value) ->
@@ -85,24 +131,23 @@ class translator = object(self)
       ) strs;
     Buffer.add_char buffer '\n'
                                        
-  method translate_if_statement buffer cur_frame_index cond tstmts fstmts_option =
+  method translate_if_statement buffer cond tstmts fstmts_option =
     self#translate_expression buffer true cond;
     let new_label = self#gen_label in
     self#write_statement buffer ["TEST "; (string_of_int cur_label_)];
     List.iter (fun stmt ->
-        self#translate_statement buffer cur_frame_index stmt
+        self#translate_statement buffer stmt
       ) tstmts;
     Buffer.add_string buffer new_label;
     Buffer.add_char buffer '\n';
     match fstmts_option with
     | Some fstmts ->
        List.iter(fun stmt ->
-           self#translate_statement buffer cur_frame_index stmt
+           self#translate_statement buffer stmt
          ) fstmts
     | _ -> ()
-   
-  method translate_for_statement
-           buffer cur_frame_index init_stmt cond prop_stmt stmts =
+             
+  method translate_for_statement buffer init_stmt cond prop_stmt stmts =
     begin
       match init_stmt with
       | Ofast.Variable_assign_statement (varname, exp) ->
@@ -116,18 +161,34 @@ class translator = object(self)
     self#translate_expression buffer true cond;
     self#write_statement buffer ["TEST "; (string_of_int cur_label_)];
     List.iter (fun stmt ->
-        self#translate_statement buffer cur_frame_index stmt
+        self#translate_statement buffer stmt
       ) stmts;
     self#write_statement buffer [end_label];
       
-  method translate_while_statement buffer cur_frame_index cond stmts =
+  method translate_while_statement buffer cond stmts =
     ()
 
-  method translate_variable_declaration_statement buffer cur_frame_index varname exp_option =
-    ()
+  method translate_variable_declaration_statement buffer varname exp_option =
+    begin
+      match cur_scope_ with
+      | Scope (_, symbols) ->
+         symbols := Variable_symbol (varname, cur_frame_index_) :: !symbols;
+         cur_frame_index_ <- cur_frame_index_ + 1
+    end;
+    match exp_option with
+    | Some exp ->
+       self#translate_expression buffer true exp;
+       self#write_statement buffer ["STORE "; (string_of_int (cur_frame_index_ - 1))]
+    | _ -> ()
 
   method translate_variable_assign_statement buffer varname exp =
-    ()
+    self#translate_expression buffer true exp;
+    let index, is_global = self#lookup_symbol varname in
+    match is_global with
+    | true ->
+       self#write_statement buffer ["FGSTORE "; (string_of_int index)]
+    | false ->
+       self#write_statement buffer ["STORE "; (string_of_int index)]
 
   method translate_table_value_assign_statement buffer varname key value =
     ()
@@ -177,16 +238,21 @@ class translator = object(self)
     Buffer.add_char buffer '\n'
                             
   method translate_variable_expression buffer in_func varname =
-    ()
+    let index, is_global = self#lookup_symbol varname in
+    match is_global with
+    | true ->
+       self#write_statement buffer ["FGLOAD "; (string_of_int index)]
+    | false ->
+       self#write_statement buffer ["LOAD "; (string_of_int index)]
 
   method translate_boolean_literal_expression buffer in_func b =
-    self#write_expression buffer in_func [ "CONST "; (string_of_bool b); ]
+    self#write_expression buffer in_func ["CONST "; (string_of_bool b)]
 
   method translate_numeric_literal_expression buffer in_func n =
-    self#write_expression buffer in_func [ "CONST "; (string_of_float n); ]
+    self#write_expression buffer in_func ["CONST "; (string_of_float n)]
 
   method translate_string_literal_expression buffer in_func s =
-    self#write_expression buffer in_func [ "CONST "; "\""; s; "\"" ]
+    self#write_expression buffer in_func ["CONST "; "\""; s; "\""]
 
   method translate_table_constructor_expression buffer in_func kvs =
     ()

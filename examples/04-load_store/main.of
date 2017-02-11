@@ -1,0 +1,7 @@
+var i = 1
+fn hoge() {
+   var x = 0
+   var y = x
+   var z = y
+   var w = i
+}
