@@ -1,6 +1,6 @@
 var z = 5
 
-fn hoge() {
+fn main() {
    var x = 0
    x = 1
    var y = 1
