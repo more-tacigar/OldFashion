@@ -25,6 +25,8 @@ class translator = object(self)
     cur_label_ <- cur_label_ + 1;
     self#cur_label
 
+  (* Return value is tuple, first element is index of frame, 
+     second element is whether that symbol is global. *)
   method lookup_symbol name =
     let rec lookup = function
       | Scope (parent, symbols) ->
@@ -133,6 +135,8 @@ class translator = object(self)
     | Ofast.Return_statement (exp_option) ->
        self#translate_return_statement buffer exp_option
 
+  (* Because all statements is in function scope,
+     insert two space *)
   method write_statement buffer strs =
     Buffer.add_string buffer "  ";
     List.iter (fun str ->
@@ -175,6 +179,7 @@ class translator = object(self)
         self#translate_statement buffer stmt
       ) stmts;
     self#translate_statement buffer prop_stmt;
+    (* Go back to start label *)
     self#write_statement buffer ["JUMP "; (string_of_int start_label_n)];
     Buffer.add_string buffer end_label;
     Buffer.add_char buffer '\n'
@@ -191,10 +196,10 @@ class translator = object(self)
     List.iter (fun stmt ->
         self#translate_statement buffer stmt
       ) stmts;
+    (* Go back to start label *)
     self#write_statement buffer ["JUMP "; (string_of_int start_label_n)];
     Buffer.add_string buffer end_label;
     Buffer.add_char buffer '\n'
-
 
   method translate_variable_declaration_statement buffer varname exp_option =
     begin
@@ -219,7 +224,10 @@ class translator = object(self)
        self#write_statement buffer ["STORE "; (string_of_int index)]
 
   method translate_table_value_assign_statement buffer varname key value =
-    ()
+    self#translate_expression buffer true key;
+    self#translate_expression buffer true value;
+    let index, _ = self#lookup_symbol varname in
+    self#write_statement buffer ["LOADTBL "; (string_of_int index)]
 
   method translate_function_call_statement buffer funcname args =
     List.iter (fun arg ->
@@ -247,7 +255,7 @@ class translator = object(self)
     | Ofast.Table_constructor_expression kvs ->
        self#translate_table_constructor_expression buffer in_func kvs
     | Ofast.Table_value_expression (varname, key) ->
-       self#translate_table_value_expression buffer varname in_func key
+       self#translate_table_value_expression buffer in_func varname key
     | Ofast.Unary_operation_expression (op, exp) ->
        self#translate_unary_operation_expression buffer in_func op exp
     | Ofast.Binary_operation_expression (lhs, op, rhs) ->
@@ -283,13 +291,27 @@ class translator = object(self)
     self#write_expression buffer in_func ["CONST "; "\""; s; "\""]
 
   method translate_table_constructor_expression buffer in_func kvs =
-    ()
+    List.iter (fun kv ->
+        let k = fst kv in
+        let v = snd kv in
+        self#translate_expression buffer in_func k;
+        self#translate_expression buffer in_func v
+      ) kvs;
+    let n = List.length kvs in
+    self#write_expression buffer in_func ["NEWTBL "; (string_of_int n)]
 
   method translate_table_value_expression buffer in_func varname key =
-    ()
+    self#translate_expression buffer in_func key;
+    let index, _ = self#lookup_symbol varname in
+    self#write_expression buffer in_func ["STORETBL "; (string_of_int index)]
 
   method translate_unary_operation_expression buffer in_func op exp =
-    ()
+    self#translate_expression buffer in_func exp;
+    match op with
+    | Ofast.Uminus ->
+       self#write_expression buffer in_func ["MINUS"]
+    | Ofast.Uplus ->
+       ()
       
   method translate_binary_operation_expression buffer in_func lhs op rhs =
     self#translate_expression buffer in_func lhs;

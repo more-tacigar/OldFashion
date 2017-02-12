@@ -1,0 +1,5 @@
+fn main() {
+  var t = ["hello" = "hoge"]
+  t["hello"] = "fuga"
+  var x = t["hello"]
+}
