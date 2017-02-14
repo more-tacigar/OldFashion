@@ -13,6 +13,14 @@ Library ofparser
   BuildDepends:    menhirLib
   CompiledObject:  best
 
+Library ofassembler_parser
+  Modules:         Ofassembler_ast
+  InternalModules: Ofassembler_parser
+  Path:            src
+  BuildTools:      menhir, ocamlbuild
+  BuildDepends:    menhirLib
+  CompiledObject:  best
+
 Executable oldfashion
   Path:           src
   BuildTools:     ocamlbuild
