@@ -3,10 +3,6 @@
  * https://github.com/tacigar/oldfashion
  * ============================================================ */
 
-%{
-  open Ofsyntax
-%}
-
 %token<string> IDENTIFIER
 %token<float> NUMERIC_LITERAL
 %token<string> STRING_LITERAL
