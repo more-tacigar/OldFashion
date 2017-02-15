@@ -67,6 +67,3 @@ and read_string buf = parse
   | eof { raise (Syntax_error ("String is not terminated")) }
   | _ { raise (Syntax_error ("Illegal string character: " ^ Lexing.lexeme lexbuf)) }
   
-      
-
-    

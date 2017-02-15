@@ -17,7 +17,10 @@ class translator = object(self)
   val mutable cur_scope_ = Scope (None, ref [])
   val mutable cur_global_index_ = 0
   val mutable cur_frame_index_ = 0
-                         
+
+  (* This method must be called after calling translate method *)
+  method globals = cur_global_index_
+                                   
   method cur_label =
     ".label " ^ (string_of_int cur_label_)
 

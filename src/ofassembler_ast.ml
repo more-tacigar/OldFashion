@@ -8,7 +8,7 @@ type identifier = string
  and code =
    | Function_define of identifier * int * int
    | Label_define of int
-   | Instruction of identifier * argument option
+   | Instruction of Ofcode.code * argument option
  and argument =
    | String_literal of string
    | Integer_literal of int
@@ -39,7 +39,7 @@ let to_string program =
     | Instruction (instruction, arg_option) ->
        write_line buf depth "instruction:";
        write_line buf (depth + 1) "instruction name:";
-       write_line buf (depth + 2) instruction;
+       write_line buf (depth + 2) (Ofcode.to_string instruction);
        match arg_option with
        | Some arg ->
           write_line buf (depth + 1) "argument:";

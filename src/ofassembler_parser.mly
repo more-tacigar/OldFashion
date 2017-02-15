@@ -26,7 +26,7 @@ code
   | LABEL; n = INTEGER_LITERAL; NEWLINE
     { Ofassembler_ast.Label_define n }
   | instruction = IDENTIFIER; arg = option(argument); NEWLINE
-    { Ofassembler_ast.Instruction (instruction, arg) }
+    { Ofassembler_ast.Instruction (Ofcode.of_string instruction, arg) }
   ;
 argument
   : s = STRING_LITERAL

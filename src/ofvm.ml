@@ -7,6 +7,12 @@ class vm = object(self)
   val mutable ip_register = 0
   val mutable fp_register = 0
   val mutable sp_register = 0
-  val mutable code_memory = Array.make 0 0
-  val const_pool = Hashtbl.create 10
+  val mutable code = Array.make 0 0
+  val mutable globals = Array.make 0 0
+  val mutable consts = Array.make 0 0
+  val mutable call_stack = Array.make 0 0
+  val mutable operands = Array.make 0 0
+
+  method add_function funcname impl =
+    
 end

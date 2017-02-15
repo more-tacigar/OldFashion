@@ -27,6 +27,16 @@ let dump_asmast filename =
   let ast = Ofassembler_parser.program Ofassembler_lexer.read lexbuf in
   let ast_str = Ofassembler_ast.to_string ast in
   print_string ast_str
+
+let execute filename =
+  let lexbuf = Lexing.from_channel (open_in filename) in
+  let ast = Ofparser.program Oflexer.read lexbuf in
+  let translator = new Ofassembly.translator in
+  let asm = translator#translate ast in
+  let lexbuf = Lexing.from_string asm in
+  let ast = Ofassembler_parser.program Ofassembler_lexer.read lexbuf in
+  let assembler = new Ofassembler.assembler in
+  ignore(assembler#assemble ast)
                
 let main () =
   let filename = ref "" in
