@@ -29,6 +29,7 @@ type code =
   | EQ
   | AND
   | OR
+  | HALT
 
 let of_string = function
   | "FGSTORE"  -> FGSTORE
@@ -56,6 +57,7 @@ let of_string = function
   | "EQ"       -> EQ
   | "AND"      -> AND
   | "OR"       -> OR
+  | "HALT"     -> HALT
   | _ -> raise Not_found
 
 let to_string = function
@@ -84,6 +86,7 @@ let to_string = function
   | EQ       -> "EQ"
   | AND      -> "AND"
   | OR       -> "OR"
+  | HALT     -> "HALT"
 
 let int_code_assoc =
   [ (0x0000, FGSTORE);
@@ -111,6 +114,7 @@ let int_code_assoc =
     (0x0016, EQ);
     (0x0017, AND);
     (0x0018, OR);
+    (0x0019, HALT);
   ]
                   
 let of_int n =

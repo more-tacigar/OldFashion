@@ -7,6 +7,7 @@ type value =
   | String of string
   | Number of float
   | Function of string * int * int * int
-
+  | Table of (string * value) list
+  | Bool of bool
                   
        

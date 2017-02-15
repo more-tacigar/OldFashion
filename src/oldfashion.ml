@@ -36,7 +36,10 @@ let execute filename =
   let lexbuf = Lexing.from_string asm in
   let ast = Ofassembler_parser.program Ofassembler_lexer.read lexbuf in
   let assembler = new Ofassembler.assembler in
-  ignore(assembler#assemble ast)
+  let consts, code, start_adr, start_locals = assembler#assemble ast in
+  let vm = new Ofvm.vm translator#globals consts code start_adr start_locals in
+  vm#dump_consts;
+  vm#execute
                
 let main () =
   let filename = ref "" in
@@ -58,6 +61,6 @@ let main () =
   else if !asmast_flag then
     dump_asmast !filename
   else
-    ()
+    execute !filename
 
 let () = main ()

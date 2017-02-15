@@ -20,7 +20,7 @@ class translator = object(self)
 
   (* This method must be called after calling translate method *)
   method globals = cur_global_index_
-                                   
+
   method cur_label =
     ".label " ^ (string_of_int cur_label_)
 
@@ -98,6 +98,12 @@ class translator = object(self)
     Buffer.add_string buffer_ (string_of_int cur_frame_index_);
     Buffer.add_char buffer_ '\n';
     Buffer.add_buffer buffer_ tmpbuf;
+    begin
+      if funcname = "main" then
+        Buffer.add_string buffer_ "HALT\n"
+      else
+        Buffer.add_string buffer_ "RET\n"
+    end;
     cur_scope_ <- origin
 
   method translate_variable_external_definition varname exp_option =
